@@ -2,7 +2,9 @@
 title: "Assignment-4 part-1"
 author: "Teja Sri"
 date: "2025-09-19"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r Downloading the Gene Expression contains RNA Sequence count}
