@@ -1,0 +1,322 @@
+---
+title: "Assignment 4 Part-2"
+author: "Teja Sri"
+date: "2025-09-16"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+## =========================================================
+## Part 2: Examining biological sequence diversity
+
+# We will follow the Week09 notes workflow to download, process, and analyse the coding DNA sequences (CDS) of *E. coli* and *Campylobacter coli*.
+
+## =========================================================
+```
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(seqinr)   # sequence IO + GC, count, translate, uco
+  library(R.utils)  # gunzip
+})
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 1) Download CDS FASTA files from Ensembl
+# Here I download the complete set of coding DNA sequences (CDS) for E. coli K-12 MG1655 and Campylobacter coli (GCA_003780985) from Ensembl Bacteria, and unzip them for use in R.
+## ---------------------------------------------------------
+
+## E. coli K-12 MG1655 (Ensembl Bacteria Release-62)
+url_ecoli <- "https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-62/fasta/bacteria_0_collection/escherichia_coli_str_k_12_substr_mg1655_gca_000005845/cds/Escherichia_coli_str_k_12_substr_mg1655_gca_000005845.ASM584v2.cds.all.fa.gz"
+
+## Campylobacter coli (GCA_003780985) (your assigned genome)
+url_cci  <- "https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-62/fasta/bacteria_46_collection/campylobacter_coli_gca_003780985/cds/Campylobacter_coli_gca_003780985.PDT000395653.1.cds.all.fa.gz"
+
+## filenames
+ec_gz <- "ecoli_cds.fa.gz"; ec_fa <- "ecoli_cds.fa"
+cc_gz <- "ccoli_cds.fa.gz"; cc_fa <- "ccoli_cds.fa"
+
+## download + unzip (exact pattern used in Week09)
+
+#download.file(url_ecoli, destfile = ec_gz, mode = "wb")
+#gunzip(ec_gz)                  # makes 'ecoli_cds.fa'
+
+#download.file(url_cci, destfile = cc_gz, mode = "wb")
+#gunzip(cc_gz)                  # makes 'ccoli_cds.fa'
+
+## check
+print(list.files())
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 2) Read CDS FASTA into R (seqinr)
+#The downloaded FASTA files are read into R using read.fasta() from the seqinr package. Each entry corresponds to one coding sequence.
+## ---------------------------------------------------------
+ec_cds <- read.fasta(ec_fa)    # list of DNA sequences (A,T,G,C)
+cc_cds <- read.fasta(cc_fa)
+
+## sanity peek
+str(head(ec_cds))
+str(head(cc_cds))
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 3) How many coding sequences (CDS) in each organism? (table)
+# calculated the number of CDS entries for each organism and present the results in a summary table.
+## ---------------------------------------------------------
+n_ec <- length(ec_cds)
+n_cc <- length(cc_cds)
+
+cds_count_tbl <- data.frame(
+  Organism = c("E. coli K-12 MG1655", "Campylobacter coli (GCA_003780985)"),
+  CDS_count = c(n_ec, n_cc)
+)
+print(cds_count_tbl)
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 4) How much coding DNA in total? (table)
+# By summing the lengths of all CDS, we obtain the total number of coding base pairs in each organism and compare them in a table.
+## ---------------------------------------------------------
+ec_len <- as.numeric(summary(ec_cds)[,1])
+cc_len <- as.numeric(summary(cc_cds)[,1])
+
+total_bp_tbl <- data.frame(
+  Organism = c("E. coli K-12 MG1655", "Campylobacter coli (GCA_003780985)"),
+  Total_coding_bp = c(sum(ec_len), sum(cc_len))
+)
+print(total_bp_tbl)
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 5) CDS length distributions + mean/median (boxplot + stats)
+# Examine the distribution of coding sequence lengths, and compute mean and median lengths for both organisms. Boxplots and histograms are used to visualise the data.
+## ---------------------------------------------------------
+cat("E. coli mean len = ", mean(ec_len), " median = ", median(ec_len), "\n")
+cat("C. coli mean len = ", mean(cc_len), " median = ", median(cc_len), "\n")
+
+par(mfrow = c(1,2))
+boxplot(ec_len, ylab = "CDS length (bp)", main = "E. coli CDS length")
+boxplot(cc_len, ylab = "CDS length (bp)", main = "C. coli CDS length")
+par(mfrow = c(1,1))
+
+## (optional) histogram like in notes
+hist(ec_len, xlab="sequence length (bp)", ylab="frequency",
+     main="E. coli CDS length", breaks = 40)
+hist(cc_len, xlab="sequence length (bp)", ylab="frequency",
+     main="C. coli CDS length", breaks = 40)
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 6) Nucleotide frequency (total coding DNA) + barplots
+# calculated the nucleotide composition (A, C, G, T) across all CDS, and display the absolute counts in barplots to show genome-wide base usage.
+# Should print lower-case 'a','t','g','c' etc.
+# check what function you're calling
+## ---------------------------------------------------------
+## 6) Nucleotide frequency (total coding DNA) + barplots
+## ---------------------------------------------------------
+
+# Flatten DNA into one long vector of lowercase bases
+ec_dna <- unlist(ec_cds)
+cc_dna <- unlist(cc_cds)
+
+# Count nucleotides (must use lowercase alphabet here)
+ec_nt_counts <- seqinr::count(ec_dna, wordsize = 1, alphabet = c("a","c","g","t"))
+cc_nt_counts <- seqinr::count(cc_dna, wordsize = 1, alphabet = c("a","c","g","t"))
+
+# Barplots
+par(mfrow = c(1,2))
+barplot(ec_nt_counts, main = "E. coli CDS composition", ylab = "frequency", xlab = "nucleotides")
+barplot(cc_nt_counts, main = "C. coli CDS composition", ylab = "frequency", xlab = "nucleotides")
+par(mfrow = c(1,1))
+
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 7) Protein translation + amino acid frequency (+ barplots)
+# The CDS are translated into protein sequences. We then compute amino acid frequencies and present them as barplots for E. coli and C. coli.
+## ---------------------------------------------------------
+# Translate CDS to proteins
+ec_prot <- unlist(lapply(ec_cds, seqinr::translate))
+cc_prot <- unlist(lapply(cc_cds, seqinr::translate))
+
+# Remove stop codons ("*")
+ec_prot <- ec_prot[ec_prot != "*"]
+cc_prot <- cc_prot[cc_prot != "*"]
+
+# Standard uppercase amino acid alphabet
+aa <- c("A","C","D","E","F","G","H","I","K","L",
+        "M","N","P","Q","R","S","T","V","W","Y")
+
+# Count amino acids
+ec_aa_counts <- seqinr::count(ec_prot, wordsize = 1, alphabet = aa)
+cc_aa_counts <- seqinr::count(cc_prot, wordsize = 1, alphabet = aa)
+
+# Barplots
+par(mfrow = c(1,2))
+barplot(ec_aa_counts, main = "E. coli amino-acid counts",
+        ylab = "count", xlab = "AA", las = 2)
+barplot(cc_aa_counts, main = "C. coli amino-acid counts",
+        ylab = "count", xlab = "AA", las = 2)
+par(mfrow = c(1,1))
+
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 8) Codon usage & bias (RSCU) using uco() (as in notes)
+##    We pass the whole coding DNA (unlisted).
+# Codon usage tables are generated, and relative synonymous codon usage (RSCU) values are calculated. This highlights codon preference differences between the two organisms.
+## ---------------------------------------------------------
+ec_uco_raw  <- uco(ec_dna)                                   # counts
+cc_uco_raw  <- uco(cc_dna)
+
+ec_rscu_df  <- uco(ec_dna, index = "rscu", as.data.frame = TRUE)
+cc_rscu_df  <- uco(cc_dna, index = "rscu", as.data.frame = TRUE)
+
+## quick look at most over/under (by RSCU)
+ec_top_over  <- head(ec_rscu_df[order(-ec_rscu_df$RSCU), ], 10)
+ec_top_under <- head(ec_rscu_df[order(ec_rscu_df$RSCU), ], 10)
+
+cc_top_over  <- head(cc_rscu_df[order(-cc_rscu_df$RSCU), ], 10)
+cc_top_under <- head(cc_rscu_df[order(cc_rscu_df$RSCU), ], 10)
+
+print(head(ec_rscu_df))
+print(head(cc_rscu_df))
+
+## simple side-by-side comparison table (mean RSCU by codon)
+## merge by codon to see differences
+rscu_cmp <- merge(
+  ec_rscu_df[, c("codon", "RSCU")],
+  cc_rscu_df[, c("codon", "RSCU")],
+  by = "codon", suffixes = c("_Ecoli", "_Ccoli")
+)
+## largest absolute differences in RSCU
+rscu_cmp$abs_diff <- abs(rscu_cmp$RSCU_Ecoli - rscu_cmp$RSCU_Ccoli)
+rscu_cmp <- rscu_cmp[order(-rscu_cmp$abs_diff), ]
+head(rscu_cmp, 12)
+```
+
+
+```{r}
+## ---------------------------------------------------------
+## 9) K-mer profiling on proteins (k = 3..5) as in notes
+##    "Identify 10 over- and under-represented k-mers in C. coli"
+##    We'll do k=3,4,5 and show the top/bottom for each, then
+##    check whether they are similarly ranked in E. coli.
+## ---------------------------------------------------------
+
+## Helper: return top/bottom 10 kmers that actually occur
+top_bottom_kmers <- function(aa_vec, k, alphabet) {
+  tab <- seqinr::count(aa_vec, wordsize = k, alphabet = alphabet, freq = TRUE)
+  tab <- sort(tab, decreasing = TRUE)
+  over  <- head(tab, 10)
+  under <- head(tab[tab > 0], 10)  # keep only kmers with nonzero frequency
+  list(over = over, under = under, allfreq = tab)
+}
+
+## Run for C. coli (your organism of interest)
+km3_cc <- top_bottom_kmers(cc_prot, 3, aa)
+km4_cc <- top_bottom_kmers(cc_prot, 4, aa)
+km5_cc <- top_bottom_kmers(cc_prot, 5, aa)
+
+cat("\nTop 10 C. coli tri-peptides (k=3):\n");  print(km3_cc$over)
+cat("\nBottom 10 C. coli tri-peptides (k=3):\n"); print(km3_cc$under)
+
+cat("\nTop 10 C. coli tetra-peptides (k=4):\n");  print(km4_cc$over)
+cat("\nBottom 10 C. coli tetra-peptides (k=4):\n"); print(km4_cc$under)
+
+cat("\nTop 10 C. coli penta-peptides (k=5):\n");  print(km5_cc$over)
+cat("\nBottom 10 C. coli penta-peptides (k=5):\n"); print(km5_cc$under)
+
+## Quick barplots for k=3 and k=5
+par(mfrow = c(1,2))
+barplot(km3_cc$over,  las = 2, main = "C. coli top 10 (k=3)", ylab = "frequency")
+barplot(km3_cc$under, las = 2, main = "C. coli bottom 10 (k=3)", ylab = "frequency")
+par(mfrow = c(1,2))
+barplot(km5_cc$over,  las = 2, main = "C. coli top 10 (k=5)", ylab = "frequency")
+barplot(km5_cc$under, las = 2, main = "C. coli bottom 10 (k=5)", ylab = "frequency")
+par(mfrow = c(1,1))
+
+## ---------------------------------------------------------
+## Compare C. coli tri-peptide rankings vs E. coli
+## ---------------------------------------------------------
+
+## E. coli tri-peptide frequencies (same alphabet)
+ec_tri_freq <- seqinr::count(ec_prot, wordsize = 3, alphabet = aa, freq = TRUE)
+
+## build comparison tables for the C. coli top/bottom 10 (k=3)
+compare_kmers <- function(named_freq_vec, other_freq_table) {
+  kmers <- names(named_freq_vec)
+  data.frame(
+    kmer        = kmers,
+    freq_Ccoli  = as.numeric(named_freq_vec),
+    freq_Ecoli  = as.numeric(other_freq_table[kmers]),
+    row.names   = NULL
+  )
+}
+
+cmp_over_3  <- compare_kmers(km3_cc$over,  ec_tri_freq)
+cmp_under_3 <- compare_kmers(km3_cc$under, ec_tri_freq)
+
+cat("\nC. coli top 10 tri-peptides vs E. coli frequency:\n")
+print(cmp_over_3)
+
+cat("\nC. coli bottom 10 tri-peptides vs E. coli frequency:\n")
+print(cmp_under_3)
+
+## Optional: side-by-side barplots to visualise the comparison (k=3)
+par(mfrow = c(1,2))
+barplot(rbind(cmp_over_3$freq_Ccoli, cmp_over_3$freq_Ecoli),
+        beside = TRUE, names.arg = cmp_over_3$kmer, las = 2,
+        main = "Top 10 (k=3): C. coli vs E. coli", ylab = "frequency")
+legend("topright", bty = "n", legend = c("C. coli", "E. coli"), fill = gray.colors(2))
+barplot(rbind(cmp_under_3$freq_Ccoli, cmp_under_3$freq_Ecoli),
+        beside = TRUE, names.arg = cmp_under_3$kmer, las = 2,
+        main = "Bottom 10 (k=3): C. coli vs E. coli", ylab = "frequency")
+legend("topright", bty = "n", legend = c("C. coli", "E. coli"), fill = gray.colors(2))
+par(mfrow = c(1,1))
+
+```
+
+
+
+```{r}
+## ---------------------------------------------------------
+## 10) Small summary tables that I can use to paste into my report
+# Finally, I have prepared the summary tables of CDS counts, total coding base pairs, and mean/median CDS lengths, which can be directly inserted into the report.
+## ---------------------------------------------------------
+cat("\n== Table: Number of coding sequences ==\n")
+print(cds_count_tbl)
+
+cat("\n== Table: Total coding DNA (bp) ==\n")
+print(total_bp_tbl)
+
+cat("\n== Mean/Median CDS length (bp) ==\n")
+mm_tbl <- data.frame(
+  Organism   = c("E. coli K-12 MG1655", "Campylobacter coli"),
+  Mean_bp    = c(mean(ec_len), mean(cc_len)),
+  Median_bp  = c(median(ec_len), median(cc_len))
+)
+print(mm_tbl)
+
+```
+
