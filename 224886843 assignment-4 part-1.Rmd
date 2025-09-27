@@ -24,14 +24,14 @@ growth <- read.csv("growth_data.csv", check.names = FALSE)
 head(growth)
 ```
 
-```{r Gene expression Analysis}
+```{r Gene expression Analysis pt1}
 ## 1. Show first six genes
 # Display the first six rows of the dataset (gene expression counts).
 head(gene)
 ```
 
 
-```{r Gene expression Analysis}
+```{r Gene expression Analysis pt2}
 ## 2. Add mean column
 # Calculate the mean expression across the three samples for each gene.
 # Store it in a new column called "mean_expr".
@@ -42,7 +42,7 @@ head(gene)
 ```
 
 
-```{r Gene expression Analysis}
+```{r Gene expression Analysis pt3}
 ## 3. Top 10 genes by mean expression
 # Order the genes by descending mean expression and select the top 10.
 top10 <- head(gene[order(-gene$mean_expr), ], 10)
@@ -50,7 +50,7 @@ top10
 ```
 
 
-```{r Gene expression Analysis}
+```{r Gene expression Analysis pt4}
 ## 4. Number of genes with mean < 10
 # Count how many genes have a mean expression value less than 10.
 n_low <- sum(gene$mean_expr < 10)
@@ -58,13 +58,22 @@ n_low
 ```
 
 
-```{r Gene expression Analysis}
+```{r Gene expression Analysis pt5}
 ## 5. Histogram of mean values
 # Plot a histogram to visualize the distribution of mean gene expression values.
-hist(gene$mean_expr, 
-     breaks = 40, 
-     main = "Histogram of mean gene expression", 
-     xlab = "Mean expression")
+# Compute mean expression per gene
+mean_expression <- rowMeans(gene)
+
+# Subset values below 100
+mean_expression_sub <- mean_expression[mean_expression < 100]
+
+# Plot histogram
+hist(mean_expression_sub,
+     breaks = 50,
+     main = "Histogram of mean gene expression (<100)",
+     xlab = "Mean Expression",
+     col = "lightgray", border = "black")
+
 ```
 
 ```{r Growth data analysis}
