@@ -4,6 +4,8 @@ This repository contains an R Markdown workflow for analyzing tree growth data a
 The analysis explores differences in tree growth across control and treatment sites, as well as gene expression patterns across biological samples.
 
 The data files used in this project were downloaded from Ghazanfar Khan’s GitHub repository.
+1. gene_expression.tsv  
+2. growth_data.csv
 
 # Features
 # RNA-seq Gene Expression
