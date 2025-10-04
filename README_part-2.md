@@ -41,16 +41,21 @@ Comparative Figures and Tables: Boxplots, barplots, codon usage tables
 
 5. kmer_analysis.Rmd: Protein motif distributions and comparative plots
 
-Figures: Boxplots, barplots, codon usage, k-mer comparisons
+Figures 6: Boxplots, barplots, codon usage, k-mer comparisons
 
-Tables: CDS counts, coding DNA, codon usage differences
+Tables 8: CDS counts, coding DNA, codon usage differences
 
 # Prerequisites
 
 Requires R (>= 4.1) and packages:
 - seqinr
+  
 - knitr, rmarkdown
+
 - box plot
+
 - stats, graphs
+ 
  #  Authors
+ 
  Teja Sri Abburu
