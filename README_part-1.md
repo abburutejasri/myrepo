@@ -34,9 +34,9 @@ The data files used in this project were downloaded from Ghazanfar Khan’s GitH
 
 2. tree_growth.Rmd: Growth analysis, boxplots, summary tables, and t-test results.
 
-Figures/: Expression histograms, boxplots of growth.
+Figures 5: Expression histograms, boxplots of growth.
 
-Tables/: Gene expression tables, site-wise growth summaries.
+Tables 6: Gene expression tables, site-wise growth summaries.
 
 # Prerequisites
 
