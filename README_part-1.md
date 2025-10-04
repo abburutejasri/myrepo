@@ -44,8 +44,14 @@ This project requires R (>= 4.0) and the following packages:
 
 - Histograms
 
+- Box Plots
+
+- t-test
+
 - knitr, rmarkdown
 
 - stats
+  
 # Authors
+
 Teja Sri Abburu
